@@ -1,17 +1,30 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { MessageSquarePlusIcon } from 'lucide-react'
-import { useAuth0 } from '@auth0/auth0-react'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 
 import { createChat } from '@/lib/storage'
 import { Sidebar } from '@/components/app/sidebar'
 import { Header } from '@/components/app/header'
 import { Button } from '@/components/ui'
+import { accountToUser, loginRequest } from '@/lib/auth'
 
 export function EmptyChat() {
   const navigate = useNavigate()
-  const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0()
+  const { instance, accounts } = useMsal()
+  const isAuthenticated = useIsAuthenticated()
+  const user = accountToUser(accounts[0] || null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+  const loginWithRedirect = async () => {
+    await instance.loginPopup(loginRequest)
+  }
+
+  const logout = () => {
+    instance.logoutPopup({
+      postLogoutRedirectUri: window.location.origin,
+    })
+  }
 
   const handleCreateNewChat = async () => {
     if (!isAuthenticated || !user?.sub) {
@@ -37,7 +50,7 @@ export function EmptyChat() {
           loginUrl={() => loginWithRedirect()}
           loading={false}
           logout={logout}
-          user={user || undefined}
+          user={user}
           chatTitle="New Chat"
         />
 

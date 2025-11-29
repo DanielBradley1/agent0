@@ -20,7 +20,7 @@ export default async (fastify: FastifyInstance) => {
       }
 
       try {
-        const token = request.getToken() || "";
+        const token = request.token || "";
         const response = await agent0(messages, token);
 
         reply

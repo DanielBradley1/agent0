@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 
 import { Message } from '@/types/message'
 import { ChatInput, ChatInputRef, ChatMessage } from '@/components/chat'
 import { Header, Sidebar } from '@/components/app'
+import { accountToUser, loginRequest } from '@/lib/auth'
 import * as React from 'react'
-import { useAuth0 } from '@auth0/auth0-react'
 
 interface ChatInterfaceProps {
   messages: Message[]
@@ -32,7 +33,18 @@ const ChatInterface = React.forwardRef<HTMLDivElement, ChatInterfaceProps>(
     const chatInputRef = useRef<ChatInputRef>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    const { loginWithRedirect, user, logout } = useAuth0()
+    const { instance, accounts } = useMsal()
+    const user = accountToUser(accounts[0] || null)
+
+    const loginWithRedirect = async () => {
+      await instance.loginPopup(loginRequest)
+    }
+
+    const logout = () => {
+      instance.logoutPopup({
+        postLogoutRedirectUri: window.location.origin,
+      })
+    }
 
     const handleSendMessageWrapper = async (message: string) => {
       await handleSendMessage(message)
@@ -56,7 +68,7 @@ const ChatInterface = React.forwardRef<HTMLDivElement, ChatInterfaceProps>(
             loginUrl={() => loginWithRedirect()}
             loading={isLoading}
             logout={logout}
-            user={user || undefined}
+            user={user}
             chatTitle={chatTitle}
             onUpdateChatTitle={onUpdateChatTitle}
           />
@@ -100,7 +112,7 @@ const ChatInterface = React.forwardRef<HTMLDivElement, ChatInterfaceProps>(
               isLoading={isLoading}
             />
             <footer className="text-muted-foreground mx-auto w-full max-w-2xl text-center text-xs">
-              Powered by Auth0
+              Powered by Microsoft Entra
             </footer>
           </div>
         </div>

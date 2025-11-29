@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 
 import { ChatInterface } from '@/components/chat'
 import {
@@ -10,7 +11,7 @@ import {
   updateChatTitle,
 } from '@/lib/storage'
 import { Message } from '@/types/message'
-import { useAuth0 } from '@auth0/auth0-react'
+import { accountToUser, getAccessToken, loginRequest } from '@/lib/auth'
 
 export default function ChatRoute() {
   const [isLoading, setIsLoading] = useState(false)
@@ -19,8 +20,15 @@ export default function ChatRoute() {
   const [chatTitle, setChatTitle] = useState('New Chat')
   const { chatId } = useParams<{ chatId: string }>()
   const navigate = useNavigate()
-  const { loginWithRedirect, isAuthenticated, getAccessTokenSilently, user } =
-    useAuth0()
+  const { instance, accounts } = useMsal()
+  const isAuthenticated = useIsAuthenticated()
+  const account = accounts[0] || null
+  const user = accountToUser(account)
+  const userId = user?.sub
+
+  const loginWithRedirect = async () => {
+    await instance.loginPopup(loginRequest)
+  }
 
   const [content, setContent] = useState<string>(
     'Hello! How can i help you today?'
@@ -58,13 +66,13 @@ export default function ChatRoute() {
 
   useEffect(() => {
     const fetchChatMessages = async () => {
-      if (!chatId || !isAuthenticated || !user) return
+      if (!chatId || !isAuthenticated || !userId) return
 
       setIsFetchingChat(true)
       try {
         const chat = await getChatById(chatId)
 
-        if (chat && chat.userId === user.sub) {
+        if (chat && chat.userId === userId) {
           setChatTitle(chat.title)
 
           const messagesFromDb = await getChatMessages(chatId)
@@ -99,7 +107,7 @@ export default function ChatRoute() {
     }
 
     fetchChatMessages()
-  }, [chatId, isAuthenticated, user, navigate])
+  }, [chatId, isAuthenticated, userId, navigate])
 
   useEffect(() => {
     if (!chatId) {
@@ -163,13 +171,16 @@ export default function ChatRoute() {
     }
 
     try {
-      const token = await getAccessTokenSilently()
+      const token = await getAccessToken(account)
+      if (!token) {
+        throw new Error('Failed to get access token')
+      }
 
       let currentChatId = chatId
       let isFirstMessage = false
 
-      if (!currentChatId && user?.sub) {
-        const newChat = await createChat(user.sub)
+      if (!currentChatId && userId) {
+        const newChat = await createChat(userId)
         currentChatId = newChat.id
         isFirstMessage = true
 
@@ -178,7 +189,7 @@ export default function ChatRoute() {
         setChatTitle(newChat.title)
       }
 
-      if (currentChatId && user?.sub) {
+      if (currentChatId && userId) {
         await addMessageToChat(currentChatId, {
           content: userMessage.content,
           role: userMessage.role,

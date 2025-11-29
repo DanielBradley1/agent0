@@ -6,13 +6,13 @@ import { ThemeToggle, UserButton } from '@/components/app'
 import { RenameChatDialog, ShareChatDialog } from '@/components/dialogs'
 import { Button } from '@/components/ui'
 import { cn } from '@/lib/utils'
-import { LogoutOptions, User } from '@auth0/auth0-react'
+import { EntraUser } from '@/lib/auth'
 
 interface HeaderProps {
   loginUrl: () => Promise<void>
   loading: boolean
-  user: User | undefined
-  logout: (options?: LogoutOptions) => void
+  user: EntraUser | undefined
+  logout: () => void
   chatTitle?: string
   onUpdateChatTitle?: (newTitle: string) => Promise<boolean | undefined>
 }

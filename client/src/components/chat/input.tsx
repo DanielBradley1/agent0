@@ -4,9 +4,9 @@ import React, {
   useRef,
   useState,
 } from 'react'
+import { useIsAuthenticated } from '@azure/msal-react'
 
 import { Button, Input } from '@/components/ui'
-import { useAuth0 } from '@auth0/auth0-react'
 
 import { ArrowUp } from 'lucide-react'
 
@@ -23,7 +23,7 @@ const ChatInput = React.forwardRef<ChatInputRef, ChatInputProps>(
   ({ onSendMessage, isLoading }, ref) => {
     const [message, setMessage] = useState('')
     const inputRef = useRef<HTMLInputElement>(null)
-    const { isAuthenticated } = useAuth0()
+    const isAuthenticated = useIsAuthenticated()
 
     useImperativeHandle(ref, () => ({
       focus: () => {

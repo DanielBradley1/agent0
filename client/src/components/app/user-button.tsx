@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { LogOut, UserCircle, Link } from 'lucide-react'
 
 import { Button, Popover } from '@/components/ui'
-import { User, LogoutOptions } from '@auth0/auth0-react'
+import { EntraUser } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 interface UserButtonProps {
-  user: User
-  logout: (options?: LogoutOptions) => void
+  user: EntraUser
+  logout: () => void
   className?: string
 }
 
@@ -15,7 +15,7 @@ export function UserButton({ user, logout, className }: UserButtonProps) {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
   const handleLogout = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } })
+    logout()
   }
 
   return (

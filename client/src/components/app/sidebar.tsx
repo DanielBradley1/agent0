@@ -8,6 +8,7 @@ import {
   Edit,
 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
+import { useMsal, useIsAuthenticated } from '@azure/msal-react'
 
 import {
   getUserChats,
@@ -15,7 +16,7 @@ import {
   updateChatTitle,
   createChat,
 } from '@/lib/storage'
-import { useAuth0 } from '@auth0/auth0-react'
+import { accountToUser, loginRequest } from '@/lib/auth'
 import { Button, Popover } from '@/components/ui'
 
 import {
@@ -55,8 +56,16 @@ export function Sidebar({
 
   const [internalRefreshTrigger, setInternalRefreshTrigger] = useState(0)
   const [activePopover, setActivePopover] = useState<string | null>(null)
-  const { user, loginWithRedirect, isAuthenticated } = useAuth0()
+  const { instance, accounts } = useMsal()
+  const isAuthenticated = useIsAuthenticated()
+  const account = accounts[0] || null
+  const user = accountToUser(account)
+  const userId = user?.sub
   const navigate = useNavigate()
+
+  const loginWithRedirect = async () => {
+    await instance.loginPopup(loginRequest)
+  }
 
   useEffect(() => {
     setInternalRefreshTrigger((prev) => prev + 1)
@@ -76,14 +85,14 @@ export function Sidebar({
   }, [currentChatId, currentChatTitle, isAuthenticated])
 
   const loadChats = async () => {
-    if (!isAuthenticated || !user?.sub) {
+    if (!isAuthenticated || !userId) {
       setIsLoading(false)
       return
     }
 
     setIsLoading(true)
     try {
-      const userChats = await getUserChats(user.sub)
+      const userChats = await getUserChats(userId)
       setChats(
         userChats.map((chat) => ({
           id: chat.id,
@@ -100,7 +109,7 @@ export function Sidebar({
 
   useEffect(() => {
     loadChats()
-  }, [isAuthenticated, user, internalRefreshTrigger])
+  }, [isAuthenticated, userId, internalRefreshTrigger])
 
   const openDeleteDialog = (
     chatId: string,

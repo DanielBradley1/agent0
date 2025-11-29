@@ -15,8 +15,9 @@ declare module "fastify" {
       API_HOST: string;
       API_PORT: number;
       ALLOWED_ORIGINS: string[];
-      AUTH0_DOMAIN: string;
-      AUTH0_AUDIENCE: string;
+      ENTRA_TENANT_ID: string;
+      ENTRA_CLIENT_ID: string;
+      ENTRA_AUDIENCE: string;
     };
   }
 }
@@ -29,7 +30,7 @@ export default fastifyPlugin(
   ) => {
     const schema = {
       type: "object",
-      required: ["AUTH0_DOMAIN", "AUTH0_AUDIENCE", "ALLOWED_ORIGINS"],
+      required: ["ENTRA_TENANT_ID", "ENTRA_CLIENT_ID", "ENTRA_AUDIENCE", "ALLOWED_ORIGINS"],
       properties: {
         API_HOST: {
           type: "string",
@@ -44,10 +45,13 @@ export default fastifyPlugin(
           separator: ",",
           default: "http://localhost:8080",
         },
-        AUTH0_DOMAIN: {
+        ENTRA_TENANT_ID: {
           type: "string",
         },
-        AUTH0_AUDIENCE: {
+        ENTRA_CLIENT_ID: {
+          type: "string",
+        },
+        ENTRA_AUDIENCE: {
           type: "string",
         },
       },

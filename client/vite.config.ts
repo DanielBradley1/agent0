@@ -28,7 +28,7 @@ export default defineConfig({
     },
   },
   envDir: '../',
-  envPrefix: ['AUTH0_', 'API_'],
+  envPrefix: ['VITE_', 'API_'],
   server: {
     port: 8080,
     open: true,
