@@ -65,7 +65,7 @@ Write-Host "Tenant ID: $tenantId"
 # Step 1: Create the Agent0 API app registration
 # ============================================
 
-$apiApp = New-MgApplication -DisplayName "Agent0 API" -SignInAudience "AzurADMyOrg"
+$apiApp = New-MgApplication -DisplayName "Agent0 API" -SignInAudience "AzureADMyOrg"
 
 # Set the Application ID URI
 Update-MgApplication -ApplicationId $apiApp.Id -IdentifierUris @("api://$($apiApp.AppId)")
